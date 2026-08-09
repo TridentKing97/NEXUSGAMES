@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     /* ==========================================
        1. CSS VARIABLES & THEME SETUP
@@ -63,7 +66,6 @@
       100% { background-position: 50px 50px, 50px 50px; }
     }
 
-    /* --- ORIGINAL DARK AMBIENT GLOW --- */
     body::after {
       content: "";
       position: fixed;
@@ -78,9 +80,6 @@
       pointer-events: none;
     }
 
-    /* ==========================================
-       DYNAMIC INTERACTIVE JOYSTICKS CONTAINER
-       ========================================== */
     .floating-joystick-container {
       position: fixed;
       top: 0;
@@ -132,7 +131,6 @@
       }
     }
 
-    /* 30-Second Very Smooth Breathing/Blinking Effect */
     @keyframes neonSidePulse30s {
       0%, 100% {
         text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
@@ -163,7 +161,7 @@
       cursor: pointer;
       position: relative;
       animation: titleSlideIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                 neonSidePulse30s 30s ease-in-out infinite 1s; /* Updated to 30s */
+                 neonSidePulse30s 30s ease-in-out infinite 1s;
       transition: transform 0.4s ease;
     }
 
@@ -217,7 +215,8 @@
 
     nav {
       display: flex;
-      gap: 1.5rem;
+      align-items: center;
+      gap: 1.2rem;
     }
 
     .nav-btn {
@@ -236,6 +235,63 @@
     .nav-btn:hover, .nav-btn.active {
       color: var(--neon-cyan);
       text-shadow: var(--neon-glow);
+    }
+
+    .btn-auth-trigger {
+      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.15));
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 0.5rem 1.2rem;
+      border-radius: 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-auth-trigger:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: var(--neon-glow);
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.3rem 0.8rem 0.3rem 0.4rem;
+      border-radius: 25px;
+      position: relative;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-left: 5px;
+    }
+
+    .btn-logout:hover {
+      color: #ff4d4d;
     }
 
     /* ==========================================
@@ -430,6 +486,7 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 2rem;
+      margin-bottom: 2rem;
     }
 
     @media (max-width: 850px) {
@@ -536,7 +593,386 @@
     }
 
     /* ==========================================
-       5. FOOTER
+       5. ADVANCED COMMENTS, REPLIES, EMOJIS & LIKES
+       ========================================== */
+    .comments-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .comment-form-card {
+      background: rgba(6, 8, 14, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .rating-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .stars-picker {
+      display: flex;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .star-btn {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .star-btn.active, .star-btn:hover {
+      color: #ffb700;
+    }
+
+    .form-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+
+    .emoji-picker-btn {
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .emoji-picker-btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: var(--neon-glow);
+    }
+
+    .emoji-drawer {
+      display: none;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      padding: 0.6rem;
+      border-radius: 8px;
+      margin-bottom: 0.8rem;
+    }
+
+    .emoji-drawer.active {
+      display: flex;
+    }
+
+    .emoji-item {
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: transform 0.2s;
+    }
+
+    .emoji-item:hover {
+      transform: scale(1.3);
+      background: var(--bg-hover);
+    }
+
+    .comment-textarea {
+      width: 100%;
+      min-height: 90px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.8rem;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+
+    .comment-textarea:focus {
+      border-color: var(--neon-cyan);
+    }
+
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .comment-item {
+      background: rgba(21, 28, 46, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1.2rem;
+      position: relative;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .comment-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .comment-author {
+      font-weight: 700;
+      color: var(--neon-cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .replied-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .comment-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .comment-stars {
+      color: #ffb700;
+      font-size: 0.9rem;
+    }
+
+    .comment-body {
+      color: var(--text-main);
+      line-height: 1.5;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+      white-space: pre-wrap;
+    }
+
+    .mention-tag {
+      color: var(--neon-cyan);
+      font-weight: 700;
+      background: rgba(0, 240, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.6rem;
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 3px 10px;
+      border-radius: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .btn-delete-comment {
+      background: none;
+      border: 1px solid rgba(255, 77, 77, 0.4);
+      color: #ff4d4d;
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-delete-comment:hover {
+      background: #ff4d4d;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.6);
+    }
+
+    /* ==========================================
+       6. AUTHENTICATION MODAL & RESET PASSWORD
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .auth-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+      box-shadow: var(--neon-glow-strong);
+      position: relative;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .auth-modal {
+      transform: translateY(0);
+    }
+
+    .btn-close-modal {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .btn-close-modal:hover { color: #fff; }
+
+    .auth-tabs {
+      display: flex;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      padding-bottom: 0.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .auth-tab.active {
+      color: var(--neon-cyan);
+      border-bottom-color: var(--neon-cyan);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .form-input {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      outline: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+    }
+
+    .form-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: var(--neon-glow);
+    }
+
+    .forgot-link {
+      font-size: 0.85rem;
+      color: var(--neon-cyan);
+      text-decoration: none;
+      align-self: flex-end;
+      margin-top: -0.4rem;
+      transition: color 0.2s ease;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+      color: #fff;
+    }
+
+    .google-btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .divider {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0.8rem 0;
+      position: relative;
+    }
+
+    /* ==========================================
+       7. FOOTER
        ========================================== */
     footer {
       border-top: 1px solid var(--border-color);
@@ -582,6 +1018,9 @@
     <nav>
       <button class="nav-btn active" id="nav-home" onclick="navigateTo('home')">CATALOG</button>
       <button class="nav-btn" id="nav-about" onclick="navigateTo('about')">ABOUT</button>
+      <div id="authNavContainer">
+        <button class="btn-auth-trigger" onclick="openAuthModal('login')">LOGIN / SIGN UP</button>
+      </div>
     </nav>
   </header>
 
@@ -609,6 +1048,9 @@
     <section id="page-detail" class="page">
       <button class="btn-back" onclick="navigateTo('home')">← Back to Catalog</button>
       <div id="detailContent"></div>
+      
+      <!-- COMMENT & RATING SECTION -->
+      <div class="comments-section" id="commentsContainer"></div>
     </section>
 
     <!-- PAGE 3: ABOUT -->
@@ -624,28 +1066,137 @@
     </section>
   </main>
 
+  <!-- AUTHENTICATION & PASSWORD RESET MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="auth-modal">
+      <button class="btn-close-modal" onclick="closeAuthModal()">✕</button>
+      
+      <div class="auth-tabs" id="authTabsHeader">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthMode('login')">LOGIN</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthMode('signup')">SIGN UP</button>
+      </div>
+
+      <!-- GOOGLE SIGN-IN OFFICIAL BUTTON -->
+      <div class="google-btn-wrapper" id="googleBtnContainer">
+        <div id="googleSignInButton"></div>
+      </div>
+
+      <div class="divider" id="socialDivider">OR</div>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form" id="loginForm" onsubmit="handleAuthSubmit(event, 'login')">
+        <div class="form-group">
+          <label>Gmail Address</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="gamer@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+        </div>
+        <a href="javascript:void(0)" class="forgot-link" onclick="switchAuthMode('reset')">Forgot Password?</a>
+        <button type="submit" class="btn-action">LOG IN</button>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form class="auth-form" id="signupForm" style="display: none;" onsubmit="handleAuthSubmit(event, 'signup')">
+        <div id="signupFields">
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Gamer Tag / Username</label>
+            <input type="text" id="signupUsername" class="form-input" placeholder="CyberKnight" required>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Gmail Address</label>
+            <input type="email" id="signupEmail" class="form-input" placeholder="gamer@gmail.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Phone Number (Optional)</label>
+            <input type="tel" id="signupPhone" class="form-input" placeholder="+1234567890">
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Password</label>
+            <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <!-- VERIFICATION CODE STEP CONTAINER -->
+        <div id="verificationStep" style="display: none;">
+          <p style="color: var(--neon-cyan); font-size: 0.9rem; margin-bottom: 0.8rem; text-align: center;">
+            A verification code has been sent to your Gmail address. Please check your inbox and type it below to complete registration.
+          </p>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Verification Code</label>
+            <input type="text" id="verificationCodeInput" class="form-input" placeholder="Enter Code">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-action" id="signupSubmitBtn">SEND VERIFICATION CODE</button>
+      </form>
+
+      <!-- RESET PASSWORD FORM -->
+      <form class="auth-form" id="resetForm" style="display: none;" onsubmit="handleResetSubmit(event)">
+        <h3 style="font-family: Orbitron; color: var(--neon-cyan); font-size: 1.1rem; text-align: center; margin-bottom: 0.5rem;">RESET PASSWORD</h3>
+        
+        <!-- STEP 1: ENTER GMAIL OR PHONE -->
+        <div id="resetIdentityStep">
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; text-align: center;">
+            Enter your registered Gmail address or Phone Number to receive a reset code.
+          </p>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Gmail or Phone Number</label>
+            <input type="text" id="resetIdentityInput" class="form-input" placeholder="gamer@gmail.com or +1234567890" required>
+          </div>
+        </div>
+
+        <!-- STEP 2: VERIFY CODE & NEW PASSWORD -->
+        <div id="resetCodeStep" style="display: none;">
+          <p style="color: var(--neon-cyan); font-size: 0.85rem; margin-bottom: 1rem; text-align: center;" id="resetCodeNotice">
+            A 6-digit code has been sent to your device.
+          </p>
+          <div class="form-group" style="margin-bottom: 0.8rem;">
+            <label>Verification Code</label>
+            <input type="text" id="resetCodeInput" class="form-input" placeholder="Enter 6-digit code">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.8rem;">
+            <label>New Password</label>
+            <input type="password" id="resetNewPassword" class="form-input" placeholder="••••••••">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.8rem;">
+            <label>Confirm New Password</label>
+            <input type="password" id="resetConfirmPassword" class="form-input" placeholder="••••••••">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-action" id="resetSubmitBtn">SEND RESET CODE</button>
+        <a href="javascript:void(0)" class="forgot-link" style="align-self: center; margin-top: 0.5rem;" onclick="switchAuthMode('login')">← Back to Login</a>
+      </form>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
     <p>&copy; 2026 <span>NEXUS GAMES</span>. Built with cutting-edge Web Technologies.</p>
   </footer>
 
-  <!-- JAVASCRIPT LOGIC & MOUSE-INTERACTIVE JOYSTICKS -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     /* ==========================================
-       MOUSE INTERACTIVE JOYSTICKS PHYSICS ENGINE
+       1. CONFIGURATION & CONSTANTS
+       ========================================== */
+    const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+    /* ==========================================
+       2. MOUSE INTERACTIVE JOYSTICKS PHYSICS ENGINE
        ========================================== */
     const TOTAL_JOYSTICKS = 19;
     const joystickContainer = document.getElementById('joystickContainer');
     const joysticks = [];
 
-    // Track Mouse Position
     const mouse = { x: -1000, y: -1000 };
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
     });
 
-    // SVG Generator function for Gamepad Vector
     function createJoystickSVG(color) {
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.setAttribute("viewBox", "0 0 100 100");
@@ -666,7 +1217,6 @@
       return svg;
     }
 
-    // Initialize Joysticks
     function initJoysticks() {
       const colors = ['#00f0ff', '#0077ff', '#00f0ff', '#0077ff', '#00f0ff'];
       const vw = window.innerWidth;
@@ -681,7 +1231,6 @@
         svg.style.height = `${size}px`;
         joystickContainer.appendChild(svg);
 
-        // Physics State
         const joystickObj = {
           element: svg,
           x: Math.random() * (vw - size),
@@ -700,7 +1249,6 @@
       }
     }
 
-    // Physics Animation Loop
     function animateJoysticks() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -745,7 +1293,7 @@
     requestAnimationFrame(animateJoysticks);
 
     /* ==========================================
-       CATALOG & APPLICATION LOGIC
+       3. CATALOG & APP STATE DATA
        ========================================== */
     const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22800%22%20height%3D%22450%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%230d111d%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Orbitron%2C%20sans-serif%22%20font-size%3D%2220%22%20fill%3D%22%2300f0ff%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ENO%20PREVIEW%20AVAILABLE%3C%2Ftext%3E%3C%2Fsvg%3E";
 
@@ -759,7 +1307,7 @@
         id: "gta-v-enhanced",
         title: "GTA V Enhanced",
         category: "Action",
-        rating: "5.0 ⭐",
+        rating: "5.0",
         size: "88.4 GB",
         version: "v1.0.4",
         image: "https://wallpapercave.com/wp/wp15424723.jpg",
@@ -776,7 +1324,7 @@
         id: "NoMansky",
         title: "No Man's Sky",
         category: "Sci-Fi",
-        rating: "4.7 ⭐",
+        rating: "4.7",
         size: "29.1 GB",
         version: "v6.42",
         image: "https://wallpapercave.com/wp/wp4601491.png",
@@ -793,7 +1341,7 @@
         id: "Elden-Ring-Deluxe-Edition",
         title: "Elden Ring Deluxe Edition",
         category: "RPG",
-        rating: "4.8 ⭐",
+        rating: "4.8",
         size: "72.1 GB",
         version: "v1.16.2",
         image: "https://wallpapercave.com/wp/wp16241032.webp",
@@ -810,7 +1358,7 @@
         id: "Ready-or-not",
         title: "Ready or not",
         category: "Strategy",
-        rating: "4.6 ⭐",
+        rating: "4.6",
         size: "41.1 GB",
         version: "v117216 + Co-op",
         image: "https://wallpapercave.com/wp/wp4571910.jpg",
@@ -824,43 +1372,561 @@
         downloadUrl: "https://gofile.io/d/inxLFb",
         description: "Ready or Not is an intense, tactical, first-person shooter that depicts a modern-day world in which SWAT police units are called to defuse hostile situations.",
         systemReq: "OS: 64-bit Windows 7, Windows 8.1, Windows 10 Processor: Intel Core i5-4430 / AMD FX-6300 Memory: 8 GB RAM Graphics: NVIDIA GeForce GTX 960 2GB Storage: 50 GB available space"
-      },
-      {
-        id: "mecha-protocol",
-        title: "Mecha Protocol",
-        category: "Sci-Fi",
-        rating: "4.5 ⭐",
-        size: "32.0 GB",
-        version: "v1.0.0",
-        image: "https://picsum.photos/seed/robot/600/350",
-        screenshots: [
-          "https://picsum.photos/seed/robot1/800/450",
-          "https://picsum.photos/seed/robot2/800/450"
-        ],
-        downloadUrl: "https://example.com/downloads/mecha-protocol.zip",
-        description: "Customize giant walking battle tanks and engage in high-intensity tactical warzones with fully destructible environments.",
-        systemReq: "Intel i7 9th Gen, 16GB RAM, RTX 2070"
-      },
-      {
-        id: "chronos-odyssey",
-        title: "Chronos Odyssey",
-        category: "RPG",
-        rating: "4.9 ⭐",
-        size: "60.0 GB",
-        version: "v3.0.1",
-        image: "https://picsum.photos/seed/fantasy/600/350",
-        screenshots: [
-          "https://picsum.photos/seed/fantasy1/800/450",
-          "https://picsum.photos/seed/fantasy2/800/450"
-        ],
-        downloadUrl: "https://example.com/downloads/chronos-odyssey.zip",
-        description: "Manipulate time to alter story outcomes and reverse deadly boss attacks in a massive high-fantasy open-world RPG.",
-        systemReq: "AMD Ryzen 7, 16GB RAM, RTX 3070"
       }
     ];
 
     let currentCategory = 'all';
 
+    /* ==========================================
+       4. GOOGLE AUTH & USER MANAGEMENT SYSTEM
+       ========================================== */
+    let currentUser = JSON.parse(localStorage.getItem('nexus_user')) || null;
+    let pendingVerification = null;
+    let pendingReset = null;
+
+    function getRegisteredUsers() {
+      return JSON.parse(localStorage.getItem('nexus_registered_users')) || [];
+    }
+
+    function saveRegisteredUser(user) {
+      let users = getRegisteredUsers();
+      users = users.filter(u => u.email.toLowerCase() !== user.email.toLowerCase());
+      users.push(user);
+      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+    }
+
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function handleGoogleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      if (payload) {
+        if (!payload.email || !payload.email.toLowerCase().endsWith('@gmail.com')) {
+          alert('Access denied: You must use an active @gmail.com account to sign up/login.');
+          return;
+        }
+
+        const registered = getRegisteredUsers();
+        let existingUser = registered.find(u => u.email.toLowerCase() === payload.email.toLowerCase());
+
+        if (!existingUser) {
+          existingUser = {
+            username: payload.name || payload.given_name || payload.email.split('@')[0],
+            email: payload.email.toLowerCase(),
+            phone: "",
+            password: null,
+            picture: payload.picture,
+            provider: 'google'
+          };
+          saveRegisteredUser(existingUser);
+        }
+
+        currentUser = existingUser;
+        localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+        updateNavAuth();
+        closeAuthModal();
+        refreshCurrentView();
+      }
+    }
+
+    function initGoogleAuth() {
+      if (window.google && google.accounts && google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredentialResponse
+        });
+
+        const googleBtnContainer = document.getElementById("googleSignInButton");
+        if (googleBtnContainer) {
+          google.accounts.id.renderButton(
+            googleBtnContainer,
+            { theme: "outline", size: "large", width: 280, text: "continue_with" }
+          );
+        }
+      }
+    }
+
+    function updateNavAuth() {
+      const container = document.getElementById('authNavContainer');
+      if (currentUser) {
+        const initial = currentUser.username.charAt(0).toUpperCase();
+        const avatarStyle = currentUser.picture 
+          ? `background-image: url('${currentUser.picture}'); color: transparent;` 
+          : '';
+
+        container.innerHTML = `
+          <div class="user-badge">
+            <div class="user-avatar" style="${avatarStyle}">${currentUser.picture ? '' : initial}</div>
+            <span style="font-weight:700;">${currentUser.username}</span>
+            <button class="btn-logout" onclick="logout()" title="Logout">✕</button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <button class="btn-auth-trigger" onclick="openAuthModal('login')">LOGIN / SIGN UP</button>
+        `;
+      }
+    }
+
+    function openAuthModal(mode) {
+      document.getElementById('authModal').classList.add('active');
+      switchAuthMode(mode);
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+      resetSignupForm();
+      resetPasswordForm();
+    }
+
+    function resetSignupForm() {
+      pendingVerification = null;
+      document.getElementById('signupFields').style.display = 'block';
+      document.getElementById('verificationStep').style.display = 'none';
+      document.getElementById('signupSubmitBtn').innerText = 'SEND VERIFICATION CODE';
+      document.getElementById('signupForm').reset();
+    }
+
+    function resetPasswordForm() {
+      pendingReset = null;
+      document.getElementById('resetIdentityStep').style.display = 'block';
+      document.getElementById('resetCodeStep').style.display = 'none';
+      document.getElementById('resetSubmitBtn').innerText = 'SEND RESET CODE';
+      document.getElementById('resetForm').reset();
+    }
+
+    function switchAuthMode(mode) {
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      const authTabsHeader = document.getElementById('authTabsHeader');
+      const googleBtnContainer = document.getElementById('googleBtnContainer');
+      const socialDivider = document.getElementById('socialDivider');
+
+      const formLogin = document.getElementById('loginForm');
+      const formSignup = document.getElementById('signupForm');
+      const formReset = document.getElementById('resetForm');
+
+      resetSignupForm();
+      resetPasswordForm();
+
+      if (mode === 'reset') {
+        authTabsHeader.style.display = 'none';
+        googleBtnContainer.style.display = 'none';
+        socialDivider.style.display = 'none';
+        
+        formLogin.style.display = 'none';
+        formSignup.style.display = 'none';
+        formReset.style.display = 'flex';
+      } else {
+        authTabsHeader.style.display = 'flex';
+        googleBtnContainer.style.display = 'flex';
+        socialDivider.style.display = 'block';
+
+        formReset.style.display = 'none';
+
+        if (mode === 'login') {
+          tabLogin.classList.add('active');
+          tabSignup.classList.remove('active');
+          formLogin.style.display = 'flex';
+          formSignup.style.display = 'none';
+        } else {
+          tabSignup.classList.add('active');
+          tabLogin.classList.remove('active');
+          formSignup.style.display = 'flex';
+          formLogin.style.display = 'none';
+        }
+      }
+    }
+
+    function handleAuthSubmit(event, mode) {
+      event.preventDefault();
+
+      if (mode === 'login') {
+        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        const passwordInput = document.getElementById('loginPassword').value;
+        
+        if (!email.endsWith('@gmail.com')) {
+          alert('Logins are restricted to Gmail addresses only.');
+          return;
+        }
+
+        const registered = getRegisteredUsers();
+        const existingUser = registered.find(u => u.email.toLowerCase() === email);
+
+        if (!existingUser) {
+          alert("Account not found. You must sign up with a valid Gmail address first before logging in.");
+          return;
+        }
+
+        if (existingUser.password !== passwordInput) {
+          alert("Incorrect password! You must enter the exact password created during sign up.");
+          return;
+        }
+
+        currentUser = existingUser;
+        localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+        updateNavAuth();
+        closeAuthModal();
+        refreshCurrentView();
+
+      } else {
+        if (!pendingVerification) {
+          const username = document.getElementById('signupUsername').value.trim();
+          const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+          const phone = document.getElementById('signupPhone').value.trim();
+          const password = document.getElementById('signupPassword').value;
+
+          if (!email.endsWith('@gmail.com')) {
+            alert('Registration failed: You must use a valid @gmail.com address to sign up.');
+            return;
+          }
+
+          if (!password || password.trim() === '') {
+            alert('Password cannot be empty.');
+            return;
+          }
+
+          const registered = getRegisteredUsers();
+          const existingUser = registered.find(u => u.email.toLowerCase() === email);
+          if (existingUser) {
+            alert('An account with this Gmail address is already signed up. Please log in.');
+            switchAuthMode('login');
+            return;
+          }
+
+          const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+          
+          pendingVerification = {
+            username: username,
+            email: email,
+            phone: phone,
+            password: password,
+            code: generatedCode
+          };
+
+          alert(`[NEXUS GAMES SYSTEM] Verification code sent to ${email}:\n\nYour code is: ${generatedCode}`);
+
+          document.getElementById('signupFields').style.display = 'none';
+          document.getElementById('verificationStep').style.display = 'block';
+          document.getElementById('signupSubmitBtn').innerText = 'VERIFY & CREATE ACCOUNT';
+
+        } else {
+          const userCode = document.getElementById('verificationCodeInput').value.trim();
+          
+          if (userCode === pendingVerification.code) {
+            const newUser = {
+              username: pendingVerification.username,
+              email: pendingVerification.email,
+              phone: pendingVerification.phone,
+              password: pendingVerification.password,
+              provider: 'email'
+            };
+
+            saveRegisteredUser(newUser);
+            currentUser = newUser;
+            localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+            
+            alert('Account created! Your password has been saved.');
+            
+            updateNavAuth();
+            closeAuthModal();
+            refreshCurrentView();
+          } else {
+            alert('Invalid verification code! Please check your code and try again.');
+          }
+        }
+      }
+    }
+
+    /* ==========================================
+       PASSWORD RESET VERIFICATION HANDLER
+       ========================================== */
+    function handleResetSubmit(event) {
+      event.preventDefault();
+
+      if (!pendingReset) {
+        const identity = document.getElementById('resetIdentityInput').value.trim().toLowerCase();
+        if (!identity) {
+          alert('Please enter your Gmail address or Phone Number.');
+          return;
+        }
+
+        const registered = getRegisteredUsers();
+        const userIndex = registered.findIndex(u => 
+          (u.email && u.email.toLowerCase() === identity) || 
+          (u.phone && u.phone.trim() === identity)
+        );
+
+        if (userIndex === -1) {
+          alert('No account found associated with that Gmail or Phone Number.');
+          return;
+        }
+
+        const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+        pendingReset = {
+          userIndex: userIndex,
+          code: generatedCode,
+          identity: identity
+        };
+
+        alert(`[NEXUS SECURITY] Verification code sent to ${identity}:\n\nYour code is: ${generatedCode}`);
+
+        document.getElementById('resetIdentityStep').style.display = 'none';
+        document.getElementById('resetCodeStep').style.display = 'block';
+        document.getElementById('resetCodeNotice').innerText = `Verification code sent to ${identity}. Please enter it below to set a new password.`;
+        document.getElementById('resetSubmitBtn').innerText = 'UPDATE PASSWORD';
+
+      } else {
+        const codeInput = document.getElementById('resetCodeInput').value.trim();
+        const newPassword = document.getElementById('resetNewPassword').value;
+        const confirmPassword = document.getElementById('resetConfirmPassword').value;
+
+        if (codeInput !== pendingReset.code) {
+          alert('Invalid verification code! Please check and try again.');
+          return;
+        }
+
+        if (!newPassword || newPassword.trim() === '') {
+          alert('Password cannot be empty.');
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          alert('Passwords do not match. Please verify your new password.');
+          return;
+        }
+
+        const registered = getRegisteredUsers();
+        registered[pendingReset.userIndex].password = newPassword;
+        localStorage.setItem('nexus_registered_users', JSON.stringify(registered));
+
+        if (currentUser && currentUser.email === registered[pendingReset.userIndex].email) {
+          currentUser.password = newPassword;
+          localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+        }
+
+        alert('Password updated successfully! You can now log in with your new password.');
+        switchAuthMode('login');
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('nexus_user');
+      updateNavAuth();
+      refreshCurrentView();
+    }
+
+    /* ==========================================
+       5. ADVANCED COMMENTS SYSTEM (REPLIES, MENTIONS, EMOJIS, LIKES & DISLIKES)
+       ========================================== */
+    let selectedStarRating = 5;
+
+    function getGameComments(gameId) {
+      const allComments = JSON.parse(localStorage.getItem('nexus_comments')) || {};
+      return allComments[gameId] || [];
+    }
+
+    function saveGameComments(gameId, commentsArr) {
+      const allComments = JSON.parse(localStorage.getItem('nexus_comments')) || {};
+      allComments[gameId] = commentsArr;
+      localStorage.setItem('nexus_comments', JSON.stringify(allComments));
+    }
+
+    function setRatingStars(rating) {
+      selectedStarRating = rating;
+      const stars = document.querySelectorAll('.star-btn');
+      stars.forEach((s, idx) => {
+        if (idx < rating) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+    }
+
+    function toggleEmojiDrawer() {
+      const drawer = document.getElementById('emojiDrawer');
+      if (drawer) drawer.classList.toggle('active');
+    }
+
+    function insertEmoji(emoji) {
+      const input = document.getElementById('commentInput');
+      if (input) {
+        input.value += emoji;
+        input.focus();
+      }
+    }
+
+    function submitComment(gameId) {
+      if (!currentUser) {
+        openAuthModal('login');
+        return;
+      }
+      const text = document.getElementById('commentInput').value.trim();
+      if (!text) return;
+
+      const newComment = {
+        id: 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        user: currentUser.username,
+        userEmail: currentUser.email,
+        rating: selectedStarRating,
+        text: text,
+        likes: 0,
+        dislikes: 0,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+
+      const comments = getGameComments(gameId);
+      comments.unshift(newComment);
+      saveGameComments(gameId, comments);
+      renderCommentsSection(gameId);
+    }
+
+    function deleteGameComment(gameId, commentId) {
+      let comments = getGameComments(gameId);
+      comments = comments.filter(c => String(c.id) !== String(commentId));
+      saveGameComments(gameId, comments);
+      renderCommentsSection(gameId);
+    }
+
+    function handleReaction(gameId, commentId, type) {
+      const comments = getGameComments(gameId);
+      const target = comments.find(c => String(c.id) === String(commentId));
+      if (target) {
+        if (type === 'like') target.likes = (target.likes || 0) + 1;
+        if (type === 'dislike') target.dislikes = (target.dislikes || 0) + 1;
+        saveGameComments(gameId, comments);
+        renderCommentsSection(gameId);
+      }
+    }
+
+    function initiateReply(authorUsername) {
+      if (!currentUser) {
+        openAuthModal('login');
+        return;
+      }
+      const input = document.getElementById('commentInput');
+      if (input) {
+        input.value = `@${authorUsername} `;
+        input.focus();
+        window.scrollTo({ top: input.offsetTop - 150, behavior: 'smooth' });
+      }
+    }
+
+    function formatTextWithMentions(text) {
+      return text.replace(/(@[a-zA-Z0-9_]+)/g, '<span class="mention-tag">$1</span>');
+    }
+
+    function extractMentionedUser(text) {
+      const match = text.match(/@([a-zA-Z0-9_]+)/);
+      return match ? match[1] : null;
+    }
+
+    function renderCommentsSection(gameId) {
+      const container = document.getElementById('commentsContainer');
+      const comments = getGameComments(gameId);
+
+      const emojiList = ['🎮', '🔥', '👍', '❤️', '🚀', '💯', '💩', '😎', '🎉', '⚡', '🤖', '💀'];
+      const emojiButtons = emojiList.map(e => `<span class="emoji-item" onclick="insertEmoji('${e}')">${e}</span>`).join('');
+
+      let formHtml = '';
+      if (currentUser) {
+        formHtml = `
+          <div class="comment-form-card">
+            <h4 style="font-family: Orbitron; margin-bottom: 0.8rem; color: var(--neon-cyan);">LEAVE A REVIEW</h4>
+            <div class="rating-select">
+              <span>Your Rating:</span>
+              <div class="stars-picker">
+                <span class="star-btn active" onclick="setRatingStars(1)">★</span>
+                <span class="star-btn active" onclick="setRatingStars(2)">★</span>
+                <span class="star-btn active" onclick="setRatingStars(3)">★</span>
+                <span class="star-btn active" onclick="setRatingStars(4)">★</span>
+                <span class="star-btn active" onclick="setRatingStars(5)">★</span>
+              </div>
+            </div>
+            <div class="form-tools">
+              <button type="button" class="emoji-picker-btn" onclick="toggleEmojiDrawer()">😀 Emojis</button>
+            </div>
+            <div class="emoji-drawer" id="emojiDrawer">
+              ${emojiButtons}
+            </div>
+            <textarea id="commentInput" class="comment-textarea" placeholder="Share your review or reply to someone..."></textarea>
+            <button class="btn-action" onclick="submitComment('${gameId}')">POST REVIEW</button>
+          </div>
+        `;
+      } else {
+        formHtml = `
+          <div class="comment-form-card" style="text-align: center;">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Log in to submit ratings, like posts, and join conversations.</p>
+            <button class="btn-auth-trigger" onclick="openAuthModal('login')">LOGIN TO COMMENT</button>
+          </div>
+        `;
+      }
+
+      const commentsListHtml = comments.length > 0 
+        ? comments.map(c => {
+            const isOwner = currentUser && (
+              (c.userEmail && currentUser.email === c.userEmail) || 
+              (currentUser.username === c.user)
+            );
+            
+            const deleteBtn = isOwner 
+              ? `<button class="btn-delete-comment" onclick="deleteGameComment('${gameId}', '${c.id}')" title="Delete comment">🗑️ Delete</button>`
+              : '';
+
+            const mentionedUser = extractMentionedUser(c.text);
+            const replyBadgeHtml = mentionedUser 
+              ? `<span class="replied-badge">↩ REPLIED TO @${mentionedUser}</span>` 
+              : '';
+
+            return `
+              <div class="comment-item">
+                <div class="comment-header">
+                  <div class="comment-user-info">
+                    <span class="comment-author">${c.user}</span>
+                    ${replyBadgeHtml}
+                    <span class="comment-date">• ${c.date}</span>
+                  </div>
+                  <div class="comment-stars">${'★'.repeat(c.rating)}${'☆'.repeat(5 - c.rating)}</div>
+                </div>
+                <div class="comment-body">${formatTextWithMentions(c.text)}</div>
+                
+                <div class="comment-actions">
+                  <button class="action-btn" onclick="handleReaction('${gameId}', '${c.id}', 'like')">👍 ${c.likes || 0}</button>
+                  <button class="action-btn" onclick="handleReaction('${gameId}', '${c.id}', 'dislike')">👎 ${c.dislikes || 0}</button>
+                  <button class="action-btn" onclick="initiateReply('${c.user}')">💬 Reply</button>
+                  ${deleteBtn}
+                </div>
+              </div>
+            `;
+          }).join('')
+        : `<p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">No reviews yet. Be the first to rate this game!</p>`;
+
+      container.innerHTML = `
+        <div class="section-title">
+          <span>COMMUNITY REVIEWS (${comments.length})</span>
+        </div>
+        ${formHtml}
+        <div class="comments-list">
+          ${commentsListHtml}
+        </div>
+      `;
+    }
+
+    /* ==========================================
+       6. RENDER & NAVIGATION LOGIC
+       ========================================== */
     function renderGames(gamesList) {
       const grid = document.getElementById('gameGrid');
       grid.innerHTML = '';
@@ -882,7 +1948,7 @@
             <h3 class="card-title">${game.title}</h3>
             <div class="card-meta">
               <span>Size: ${game.size}</span>
-              <span>${game.rating}</span>
+              <span>${game.rating} ⭐</span>
             </div>
             <button class="btn-action">VIEW DETAILS</button>
           </div>
@@ -929,9 +1995,14 @@
       if (hash.startsWith('detail-')) {
         const gameId = hash.replace('detail-', '');
         renderGameDetailContent(gameId);
+        renderCommentsSection(gameId);
       }
 
       window.scrollTo(0, 0);
+    }
+
+    function refreshCurrentView() {
+      updatePageFromHash();
     }
 
     function switchMainImage(imageUrl, thumbnailEl) {
@@ -987,7 +2058,7 @@
               <li><span>Category:</span> <strong>${game.category}</strong></li>
               <li><span>File Size:</span> <strong>${game.size}</strong></li>
               <li><span>Version:</span> <strong>${game.version}</strong></li>
-              <li><span>Rating:</span> <strong>${game.rating}</strong></li>
+              <li><span>Rating:</span> <strong>${game.rating} ⭐</strong></li>
             </ul>
             <div style="margin-bottom: 1.5rem;">
               <span style="color: var(--text-muted); font-size: 0.85rem;">System Requirements:</span>
@@ -1002,8 +2073,10 @@
     window.addEventListener('hashchange', updatePageFromHash);
 
     document.addEventListener('DOMContentLoaded', () => {
+      updateNavAuth();
       renderGames(gamesData);
       updatePageFromHash();
+      initGoogleAuth();
     });
   </script>
 </body>
