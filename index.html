@@ -972,7 +972,121 @@
     }
 
     /* ==========================================
-       7. FOOTER
+       7. TOAST NOTIFICATION POPUP & COPY BUTTON
+       ========================================== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 380px;
+      width: calc(100% - 40px);
+      pointer-events: none;
+    }
+
+    .toast-popup {
+      pointer-events: auto;
+      background: #0d111d;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 10px;
+      padding: 1.2rem;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      position: relative;
+    }
+
+    .toast-popup.toast-exit {
+      animation: toastSlideOut 0.4s forwards;
+    }
+
+    @keyframes toastSlideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes toastSlideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(100px); }
+    }
+
+    .toast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .toast-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      color: var(--neon-cyan);
+      font-weight: 700;
+    }
+
+    .btn-toast-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .btn-toast-close:hover { color: #fff; }
+
+    .toast-body {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .toast-code-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #06080e;
+      border: 1px dashed var(--neon-cyan);
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      margin-top: 0.2rem;
+    }
+
+    .toast-code {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 3px;
+      color: #fff;
+      font-weight: 900;
+      text-shadow: var(--neon-glow);
+    }
+
+    .btn-copy-code {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy-code:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: var(--neon-glow);
+    }
+
+    /* ==========================================
+       8. FOOTER
        ========================================== */
     footer {
       border-top: 1px solid var(--border-color);
@@ -1003,6 +1117,9 @@
 
   <!-- DYNAMIC INTERACTIVE JOYSTICKS CONTAINER -->
   <div id="joystickContainer" class="floating-joystick-container"></div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <!-- NAVBAR -->
   <header>
@@ -1121,7 +1238,7 @@
         <!-- VERIFICATION CODE STEP CONTAINER -->
         <div id="verificationStep" style="display: none;">
           <p style="color: var(--neon-cyan); font-size: 0.9rem; margin-bottom: 0.8rem; text-align: center;">
-            A verification code has been sent to your Gmail address. Please check your inbox and type it below to complete registration.
+            A verification code has been generated. Please paste or type it below to complete registration.
           </p>
           <div class="form-group" style="margin-bottom:1rem;">
             <label>Verification Code</label>
@@ -1150,7 +1267,7 @@
         <!-- STEP 2: VERIFY CODE & NEW PASSWORD -->
         <div id="resetCodeStep" style="display: none;">
           <p style="color: var(--neon-cyan); font-size: 0.85rem; margin-bottom: 1rem; text-align: center;" id="resetCodeNotice">
-            A 6-digit code has been sent to your device.
+            A 6-digit code has been generated.
           </p>
           <div class="form-group" style="margin-bottom: 0.8rem;">
             <label>Verification Code</label>
@@ -1185,7 +1302,57 @@
     const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
 
     /* ==========================================
-       2. MOUSE INTERACTIVE JOYSTICKS PHYSICS ENGINE
+       2. TOAST NOTIFICATION SYSTEM WITH COPY CODE
+       ========================================== */
+    function showCodeNotification(title, targetDestination, code) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast-popup';
+
+      toast.innerHTML = `
+        <div class="toast-header">
+          <span class="toast-title">🔐 ${title}</span>
+          <button class="btn-toast-close" onclick="closeToast(this)">✕</button>
+        </div>
+        <div class="toast-body">
+          Verification code for <strong>${targetDestination}</strong>:
+        </div>
+        <div class="toast-code-box">
+          <span class="toast-code">${code}</span>
+          <button class="btn-copy-code" onclick="copyToastCode('${code}', this)">COPY</button>
+        </div>
+      `;
+
+      container.appendChild(toast);
+    }
+
+    function closeToast(buttonEl) {
+      const toast = buttonEl.closest('.toast-popup');
+      if (toast) {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 400);
+      }
+    }
+
+    function copyToastCode(code, buttonEl) {
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = buttonEl.innerText;
+        buttonEl.innerText = "COPIED! ✓";
+        buttonEl.style.background = "var(--neon-cyan)";
+        buttonEl.style.color = "#000";
+
+        setTimeout(() => {
+          buttonEl.innerText = originalText;
+          buttonEl.style.background = "";
+          buttonEl.style.color = "";
+        }, 2000);
+      }).catch(err => {
+        alert("Failed to copy automatically. Code is: " + code);
+      });
+    }
+
+    /* ==========================================
+       3. MOUSE INTERACTIVE JOYSTICKS PHYSICS ENGINE
        ========================================== */
     const TOTAL_JOYSTICKS = 19;
     const joystickContainer = document.getElementById('joystickContainer');
@@ -1293,7 +1460,7 @@
     requestAnimationFrame(animateJoysticks);
 
     /* ==========================================
-       3. CATALOG & APP STATE DATA
+       4. CATALOG & APP STATE DATA
        ========================================== */
     const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22800%22%20height%3D%22450%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%230d111d%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Orbitron%2C%20sans-serif%22%20font-size%3D%2220%22%20fill%3D%22%2300f0ff%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ENO%20PREVIEW%20AVAILABLE%3C%2Ftext%3E%3C%2Fsvg%3E";
 
@@ -1378,7 +1545,7 @@
     let currentCategory = 'all';
 
     /* ==========================================
-       4. GOOGLE AUTH & USER MANAGEMENT SYSTEM
+       5. GOOGLE AUTH & USER MANAGEMENT SYSTEM
        ========================================== */
     let currentUser = JSON.parse(localStorage.getItem('nexus_user')) || null;
     let pendingVerification = null;
@@ -1614,7 +1781,8 @@
             code: generatedCode
           };
 
-          alert(`[NEXUS GAMES SYSTEM] Verification code sent to ${email}:\n\nYour code is: ${generatedCode}`);
+          // TRIGGER TOAST NOTIFICATION POPUP
+          showCodeNotification('SIGN-UP VERIFICATION', email, generatedCode);
 
           document.getElementById('signupFields').style.display = 'none';
           document.getElementById('verificationStep').style.display = 'block';
@@ -1679,7 +1847,8 @@
           identity: identity
         };
 
-        alert(`[NEXUS SECURITY] Verification code sent to ${identity}:\n\nYour code is: ${generatedCode}`);
+        // TRIGGER TOAST NOTIFICATION POPUP
+        showCodeNotification('PASSWORD RESET', identity, generatedCode);
 
         document.getElementById('resetIdentityStep').style.display = 'none';
         document.getElementById('resetCodeStep').style.display = 'block';
@@ -1728,7 +1897,7 @@
     }
 
     /* ==========================================
-       5. ADVANCED COMMENTS SYSTEM (REPLIES, MENTIONS, EMOJIS, LIKES & DISLIKES)
+       6. ADVANCED COMMENTS SYSTEM (REPLIES, MENTIONS, EMOJIS, LIKES & DISLIKES)
        ========================================== */
     let selectedStarRating = 5;
 
@@ -1925,7 +2094,7 @@
     }
 
     /* ==========================================
-       6. RENDER & NAVIGATION LOGIC
+       7. RENDER & NAVIGATION LOGIC
        ========================================== */
     function renderGames(gamesList) {
       const grid = document.getElementById('gameGrid');
